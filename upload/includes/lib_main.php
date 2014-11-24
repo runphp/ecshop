@@ -54,7 +54,7 @@ function update_user_info()
         {
             $sql="SELECT special_rank from ".$GLOBALS['ecs']->table('user_rank')."where rank_id='$row[user_rank]'";
             if($GLOBALS['db']->getOne($sql)==='0' || $GLOBALS['db']->getOne($sql)===null)
-            {   
+            {
                 $sql="update ".$GLOBALS['ecs']->table('users')."set user_rank='0' where user_id='$_SESSION[user_id]'";
                 $GLOBALS['db']->query($sql);
                 $row['user_rank']=0;
@@ -1326,7 +1326,8 @@ function get_tags($goods_id = 0, $user_id = 0)
  */
 function get_dyna_libs($theme, $tmp)
 {
-    $ext = end(explode('.', $tmp));
+    $value = explode('.', $tmp);
+    $ext = end($value);
     $tmp = basename($tmp,".$ext");
     $sql = 'SELECT region, library, sort_order, id, number, type' .
             ' FROM ' . $GLOBALS['ecs']->table('template') .
