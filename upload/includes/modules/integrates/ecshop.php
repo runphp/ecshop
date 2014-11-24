@@ -74,7 +74,80 @@ class ecshop extends integrate
         $this->need_sync = false;
         $this->is_ecshop = 1;
     }
+    //runphp.net start
+    /**
+     *  添加一个新用户 (可以邮箱重复 by heui)
+     *
+     * @access  public
+     * @param
+     *
+     * @return int
+     */
+    function add_user($username, $password, $email, $gender = -1, $bday = 0, $reg_date=0, $md5password='')
+    {
+        /* 将用户添加到整合方 */
+        if ($this->check_user($username) > 0)
+        {
+            $this->error = ERR_USERNAME_EXISTS;
 
+            return false;
+        }
+        /* 检查email是否重复 */
+        /*$sql = "SELECT " . $this->field_id .
+               " FROM " . $this->table($this->user_table).
+               " WHERE " . $this->field_email . " = '$email'";
+        if ($this->db->getOne($sql, true) > 0)
+        {
+            $this->error = ERR_EMAIL_EXISTS;
+
+            return false;
+        }*/
+
+        $post_username = $username;
+
+        if ($md5password)
+        {
+            $post_password = $this->compile_password(array('md5password'=>$md5password));
+        }
+        else
+        {
+            $post_password = $this->compile_password(array('password'=>$password));
+        }
+
+        $fields = array($this->field_name, $this->field_email, $this->field_pass);
+        $values = array($post_username, $email, $post_password);
+
+        if ($gender > -1)
+        {
+            $fields[] = $this->field_gender;
+            $values[] = $gender;
+        }
+        if ($bday)
+        {
+            $fields[] = $this->field_bday;
+            $values[] = $bday;
+        }
+        if ($reg_date)
+        {
+            $fields[] = $this->field_reg_date;
+            $values[] = $reg_date;
+        }
+
+        $sql = "INSERT INTO " . $this->table($this->user_table).
+               " (" . implode(',', $fields) . ")".
+               " VALUES ('" . implode("', '", $values) . "')";
+
+        $this->db->query($sql);
+
+        if ($this->need_sync)
+        {
+            $this->sync($username, $password);
+        }
+
+        return true;
+    }
+    
+    //runphp.net end
 
     /**
      *  检查指定用户是否存在及密码是否正确(重载基类check_user函数，支持zc加密方法)

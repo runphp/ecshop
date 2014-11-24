@@ -1,0 +1,168 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+{insert_scripts files='utils.js,quick_buy.js'}
+<script type="text/javascript">
+   {foreach from=$lang.flow_js item=item key=key}
+   var {$key} = "{$item}";
+   {/foreach}
+   var flow_no_payment = "{$lang.flow_no_payment}";
+   var flow_no_shipping = "{$lang.flow_no_shipping}";
+</script>
+<form action="quick_buy.php?step=done" method="post" name="ECS_FORMQUICKBUY" id="ECS_FORMQUICKBUY" onsubmit="return checkConsignee(this)">
+      <div class="flowBox">
+      <table width="99%" align="center" border="0" cellpadding="5" cellspacing="1" bgcolor="#dddddd">  	
+      	<tr>
+    <td bgcolor="#ffffff">商品名:</td>
+    <td bgcolor="#ffffff"><strong>{$goods.goods_style_name}</strong>
+    <input type="hidden" value="{$goods.goods_id}" name="goods_id" id="goods_id"/>
+    </td>
+    <td bgcolor="#ffffff">{$lang.number}:<input name="quickBuyNumber" type="text" id="quickBuyNumber" value="1" size="4" onblur="quickBuyChangePrice()" style="border:1px solid #ccc; "/></td>
+    <td bgcolor="#ffffff"><strong>{$lang.amount}：</strong><font id="ECS_GOODS_QUICKBUY_AMOUNT" class="shop"></font></td>
+  </tr>
+  <!-- {* 开始循环所有可选属性 *} -->
+      <!-- {foreach from=$specification item=spec key=spec_key} -->
+      <tr>
+      	<td bgcolor="#ffffff">{$spec.name}:</td>
+      	<td colspan="3" bgcolor="#ffffff">
+        <!-- {* 判断属性是复选还是单选 *} -->
+                    <!-- {if $spec.attr_type eq 1} -->
+                      <!-- {if $cfg.goodsattr_style eq 1} -->                      
+                        <!-- {foreach from=$spec.values item=value key=key} -->
+                        <label for="quick_buy_spec_value_{$value.id}">
+                        <input type="radio" name="quick_buy_spec_{$spec_key}" value="{$value.id}" id="quick_buy_spec_value_{$value.id}" {if $key eq 0}checked{/if} onclick="quickBuyChangePrice()" />
+                        {$value.label} [{if $value.price gt 0}{$lang.plus}{elseif $value.price lt 0}{$lang.minus}{/if} {$value.format_price|abs}] </label>
+                        <!-- {/foreach} -->
+                        <input type="hidden" name="quick_buy_spec_list" value="{$key}" />
+                        <!-- {else} -->
+                        <select name="quick_buy_spec_{$spec_key}" onchange="quickBuyChangePrice()">
+                          <!-- {foreach from=$spec.values item=value key=key} -->
+                          <option label="{$value.label}" value="{$value.id}">{$value.label} {if $value.price gt 0}{$lang.plus}{elseif $value.price lt 0}{$lang.minus}{/if}{if $value.price neq 0}{$value.format_price}{/if}</option>
+                          <!-- {/foreach} -->
+                        </select>
+                        <input type="hidden" name="quick_buy_spec_list" value="{$key}" />
+                      <!-- {/if} -->
+                    <!-- {else} -->
+                      <!-- {foreach from=$spec.values item=value key=key} -->
+                      <label for="quick_buy_spec_value_{$value.id}">
+                      <input type="checkbox" name="quick_buy_spec_{$spec_key}" value="{$value.id}" id="quick_buy_spec_value_{$value.id}" onclick="quickBuyChangePrice()" />
+                      {$value.label} [{if $value.price gt 0}{$lang.plus}{elseif $value.price lt 0}{$lang.minus}{/if} {$value.format_price|abs}] </label>
+                      <!-- {/foreach} -->
+                      <input type="hidden" name="quick_buy_spec_list" value="{$key}" />
+                    <!-- {/if} -->
+      </td>
+      </tr>
+      <!-- {/foreach} -->
+      <!-- {* 结束循环可选属性 *} -->
+  </table></div>
+      <!-- {foreach from=$consignee_list item=consignee key=sn name="consignee_foreach"} -->
+      <!-- {if $smarty.foreach.consignee_foreach.index < 1} -->
+      <div class="flowBox">
+      <table width="99%" align="center" border="0" cellpadding="5" cellspacing="1" bgcolor="#dddddd">
+ 
+  <!-- 购物车中存在实体商品显示国家和地区 -->
+  <tr>
+    <td bgcolor="#ffffff">{$lang.country_province}:</td>
+    <td colspan="3" bgcolor="#ffffff">
+    <select name="country" id="selCountries_{$sn}" onchange="region.changed(this, 1, 'selProvinces_{$sn}')" style="border:1px solid #ccc;">
+        <option value="0">{$lang.please_select}{$name_of_region[0]}</option>
+        <!-- {foreach from=$country_list item=country} -->
+        <option value="{$country.region_id}" {if $default_consignee.country eq $country.region_id}selected{/if}>{$country.region_name}</option>
+        <!-- {/foreach} -->
+      </select>
+      <select name="province" id="selProvinces_{$sn}" onchange="region.changed(this, 2, 'selCities_{$sn}')" style="border:1px solid #ccc;">
+        <option value="0">{$lang.please_select}{$name_of_region[1]}</option>
+        <!-- {foreach from=$province_list.$sn item=province} -->
+        <option value="{$province.region_id}" {if $default_consignee.province eq $province.region_id}selected{/if}>{$province.region_name}</option>
+        <!-- {/foreach} -->
+      </select>
+      <select name="city" id="selCities_{$sn}" onchange="region.changed(this, 3, 'selDistricts_{$sn}')" style="border:1px solid #ccc;">
+        <option value="0">{$lang.please_select}{$name_of_region[2]}</option>
+        <!-- {foreach from=$city_list.$sn item=city} -->
+        <option value="{$city.region_id}" {if $default_consignee.city eq $city.region_id}selected{/if}>{$city.region_name}</option>
+        <!-- {/foreach} -->
+      </select>
+      <select name="district" id="selDistricts_{$sn}" onclick="districtSelected()" onchange="region.changed(this, 4, 'selDistricts_{$sn}')" {if !$district_list.$sn}style="display:none"{/if} style="border:1px solid #ccc;">
+        <option value="0">{$lang.please_select}{$name_of_region[3]}</option>
+        <!-- {foreach from=$district_list.$sn item=district} -->
+        <option value="{$district.region_id}" {if $default_consignee.district eq $district.region_id}selected{/if}>{$district.region_name}</option>
+        <!-- {/foreach} -->
+      </select>
+    {$lang.require_field} </td>
+  </tr>
+ 
+  <tr>
+    <td bgcolor="#ffffff">{$lang.shipping_method}:</td>
+    <td bgcolor="#ffffff">
+    	<select name="shipping" onchange="selectShipping(this)" onclick="clickShipping()">
+    		<option value="0">{$lang.please_select}{$lang.shipping_method}</option>
+    		<!-- {foreach from=$shipping_list item=shipping} -->
+    		<option value="{$shipping.shipping_id}">{$shipping.shipping_name}</option>
+    		<!-- {/foreach} -->
+    	</select>
+    </td>
+    <td bgcolor="#ffffff">{$lang.payment_method}:</td>
+    <td bgcolor="#ffffff">    
+    	<select name="payment" onchange="selectPayment(this)">
+    		<option value="0">{$lang.please_select}{$lang.payment_method}</option>    		
+    	</select>
+    	<input name="need_insure" id="ECS_NEEDINSURE" type="checkbox"  onclick="selectInsure(this.checked)" value="1" {if $order.need_insure}checked="true"{/if} {if $insure_disabled}disabled="true"{/if}  style="display:none;"/>
+    </td>
+  </tr>
+  <tr>
+    <td bgcolor="#ffffff">{$lang.consignee_name}:</td>
+    <td bgcolor="#ffffff"><input name="consignee" type="text" class="inputBg" id="consignee_{$sn}" value="{$default_consignee.consignee|escape}" />
+    {$lang.require_field} </td>
+    <td bgcolor="#ffffff">{$lang.email_address}:</td>
+    <td bgcolor="#ffffff"><input name="email" type="text" class="inputBg"  id="email_{$sn}" value="{$default_consignee.email|escape}" />
+    </td>
+  </tr>
+  
+  <!-- 购物车中存在实体商品显示详细地址以及邮政编码 -->
+  <tr>
+    <td bgcolor="#ffffff">{$lang.detailed_address}:</td>
+    <td bgcolor="#ffffff"><input name="address" type="text" class="inputBg"  id="address_{$sn}" value="{$default_consignee.address|escape}" />
+    {$lang.require_field}</td>
+    <td bgcolor="#ffffff">{$lang.postalcode}:</td>
+    <td bgcolor="#ffffff"><input name="zipcode" type="text" class="inputBg"  id="zipcode_{$sn}" value="{$default_consignee.zipcode|escape}" /></td>
+  </tr>
+
+  <tr>
+    <td bgcolor="#ffffff">{$lang.phone}:</td>
+    <td bgcolor="#ffffff"><input name="tel" type="text" class="inputBg"  id="tel_{$sn}" value="{$default_consignee.tel|escape}" />
+    {$lang.require_field}</td>
+    <td bgcolor="#ffffff">{$lang.backup_phone}:</td>
+    <td bgcolor="#ffffff"><input name="mobile" type="text" class="inputBg"  id="mobile_{$sn}" value="{$default_consignee.mobile|escape}" /></td>
+  </tr>
+  
+  <!-- 购物车中存在实体商品显示最佳送货时间及标志行建筑 -->
+  <tr>
+    <td bgcolor="#ffffff">{$lang.sign_building}:</td>
+    <td bgcolor="#ffffff"><input name="sign_building" type="text" class="inputBg"  id="sign_building_{$sn}" value="{$default_consignee.sign_building|escape}" /></td>
+    <td bgcolor="#ffffff">{$lang.deliver_goods_time}:</td>
+    <td bgcolor="#ffffff">
+    	<input name="best_time" type="text"  class="inputBg" id="best_time_{$sn}" value="{$default_consignee.best_time|escape}" />
+    	 <input name="address_id" type="hidden" value="{$default_consignee.address_id}" />
+    </td>
+  </tr>
+  
+  </table></div>
+  <!-- {/if} -->
+  <!-- {/foreach} --> 
+  <div class="flowBox">
+  <table width="99%" align="center" border="0" cellpadding="5" cellspacing="1" bgcolor="#dddddd">
+  <tr>
+  <td valign="middle" bgcolor="#ffffff">{$lang.order_postscript}:</td>
+              <td bgcolor="#ffffff" colspan="2"><textarea name="postscript" cols="78" rows="3" id="postscript" style="border:1px solid #ccc;">{$order.postscript|escape}</textarea></td>
+            </tr>
+  <tr><td align="right" bgcolor="#ffffff" colspan="3">
+  
+  <div id="ECS_ORDERTOTAL"></div>
+  </td></tr>
+  </table>
+
+   </div>
+   <div align="center" style="margin:8px auto;">
+            <!-- <input type="image" src="images/bnt_subOrder.gif" /> -->            
+            <a href="javascript:checkConsignee()"><img src="themes/default/images/bnt_subOrder.gif"></a>
+            <input type="hidden" name="step" value="done" />
+   </div>
+</form>

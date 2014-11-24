@@ -1,0 +1,10 @@
+亲爱的{$order.consignee}，你好！ 
+
+我们已经收到您于 {$order.formated_add_time} 提交的订单，该订单编号为：{$order.order_sn} 请记住这个编号以便日后的查询。
+
+{if $username}
+系统自动为您创建的帐号：{$username}
+密码：{$password}
+{/if}
+{$shop_name}
+{$sent_date}

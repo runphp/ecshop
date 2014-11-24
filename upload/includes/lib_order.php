@@ -292,6 +292,10 @@ function available_payment_list($support_cod, $cod_fee = 0, $is_online = false)
 
         $row['format_pay_fee'] = strpos($row['pay_fee'], '%') !== false ? $row['pay_fee'] :
         price_format($row['pay_fee'], false);
+        //runphp.net start
+        stripos($row['pay_name'], "color")?$row['color']='color:#FF0000':'';
+        $row['pay_name'] = strip_tags($row['pay_name']);
+        //runphp.net end
         $modules[] = $row;
     }
 

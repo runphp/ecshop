@@ -246,6 +246,70 @@ if (!$smarty->is_cached('goods.dwt', $cache_id))
         //获取关联礼包
         $package_goods_list = get_package_goods_list($goods['goods_id']);
         $smarty->assign('package_goods_list',$package_goods_list);    // 获取关联礼包
+        //runphp.net start
+        /* 载入语言文件 */
+        require_once(ROOT_PATH . 'languages/' .$_CFG['lang']. '/user.php');
+        require_once(ROOT_PATH . 'languages/' .$_CFG['lang']. '/shopping_flow.php');
+        $smarty->assign('lang',             $_LANG);
+
+        /* 取得国家列表、商店所在国家、商店所在国家的省列表 */
+        $smarty->assign('country_list',       get_regions());
+        $smarty->assign('shop_country',       $_CFG['shop_country']);
+        $smarty->assign('shop_province_list', get_regions(1, $_CFG['shop_country']));
+
+        /* 获得用户所有的收货人信息 */
+        if ($_SESSION['user_id'] > 0)
+        {
+        	include_once('includes/lib_transaction.php');
+            $consignee_list = get_consignee_list($_SESSION['user_id']);
+            if (count($consignee_list) < 5)
+            {
+                /* 如果用户收货人信息的总数小于 5 则增加一个新的收货人信息 */
+                $consignee_list[] = array('country' => $_CFG['shop_country'], 'email' => isset($_SESSION['email']) ? $_SESSION['email'] : '');
+            }
+            include_once('includes/lib_order.php');
+            $default_consignee = get_consignee($_SESSION['user_id']);
+            $smarty->assign('default_consignee', $default_consignee);
+            $shipping_list = available_shipping_list(array(
+            	$default_consignee['country'],
+            	$default_consignee['province'],
+            	$default_consignee['city'],
+            	$default_consignee['district']
+            ));
+            $smarty->assign('shipping_list', $shipping_list);
+        }
+        else
+        {
+            if (isset($_SESSION['flow_consignee'])){
+                $consignee_list = array($_SESSION['flow_consignee']);
+            }
+            else
+            {
+                $consignee_list[] = array('country' => $_CFG['shop_country']);
+            }
+        }
+        $smarty->assign('name_of_region',   array($_CFG['name_of_region_1'], $_CFG['name_of_region_2'], $_CFG['name_of_region_3'], $_CFG['name_of_region_4']));
+        $smarty->assign('consignee_list', $consignee_list);
+
+        /* 取得每个收货地址的省市区列表 */
+        $province_list = array();
+        $city_list = array();
+        $district_list = array();
+        foreach ($consignee_list as $region_id => $consignee)
+        {
+            $consignee['country']  = isset($consignee['country'])  ? intval($consignee['country'])  : 0;
+            $consignee['province'] = isset($consignee['province']) ? intval($consignee['province']) : 0;
+            $consignee['city']     = isset($consignee['city'])     ? intval($consignee['city'])     : 0;
+
+            $province_list[$region_id] = get_regions(1, $consignee['country']);
+            $city_list[$region_id]     = get_regions(2, $consignee['province']);
+            $district_list[$region_id] = get_regions(3, $consignee['city']);     
+        }
+        
+        $smarty->assign('province_list', $province_list);
+        $smarty->assign('city_list',     $city_list);
+        $smarty->assign('district_list', $district_list);
+        //runphp.net end
 
         assign_dynamic('goods');
         $volume_price_list = get_volume_price_list($goods['goods_id'], '1');

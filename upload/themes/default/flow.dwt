@@ -651,6 +651,14 @@
         <!-- 订单提交成功 -->
         <div class="flowBox" style="margin:30px auto 70px auto;">
          <h6 style="text-align:center; height:30px; line-height:30px;">{$lang.remember_order_number}: <font style="color:red">{$order.order_sn}</font></h6>
+	 <!-- runphp.net start -->
+	          <!-- {if $password} -->
+          <h6 style="text-align:center; height:30px; line-height:30px;">
+          	系统为您自动注册帐号：<font style="color:red">{$username}</font>
+          	密码：<font style="color:red">{$password}</font>
+          </h6>
+          <!-- {/if} -->
+	 <!-- runphp.net end -->
           <table width="99%" align="center" border="0" cellpadding="15" cellspacing="0" bgcolor="#fff" style="border:1px solid #ddd; margin:20px auto;" >
             <tr>
               <td align="center" bgcolor="#FFFFFF">
