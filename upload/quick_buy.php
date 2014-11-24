@@ -54,13 +54,13 @@ if (!empty($_REQUEST['act']) && $_REQUEST['act'] == 'price')
 
     $attr_id    = isset($_REQUEST['attr']) ? explode(',', $_REQUEST['attr']) : array();
     $number     = (isset($_REQUEST['number'])) ? intval($_REQUEST['number']) : 1;
-    
+
     /* 检查：库存 */
     $sql = "SELECT g.goods_number FROM " .
       $GLOBALS['ecs']->table('goods') .
       " AS g WHERE g.goods_id = '$goods_id'";
     $goods = $GLOBALS['db']->getRow($sql);
-    
+
     if ($GLOBALS['_CFG']['use_storage'] == 1)
     {
       //检查：商品购买数量是否大于总库存
@@ -68,14 +68,14 @@ if (!empty($_REQUEST['act']) && $_REQUEST['act'] == 'price')
       {
         $res['err_msg'] = "该商品已经库存不足。您的购货数量修改不能大于 ".$goods['goods_number']."。";
         $res['err_no'] = 2;
-        $number = 0; 
-      }      
-      else 
+        $number = 0;
+      }
+      else
       {
-       /*  // 如果商品有规格则取规格商品信息 配件除外 
+       /*  // 如果商品有规格则取规格商品信息 配件除外
         $sql = "SELECT * FROM " .$GLOBALS['ecs']->table('products'). " WHERE goods_id = '$goods_id' LIMIT 0, 1";
         $prod = $GLOBALS['db']->getRow($sql);
-        
+
         if (is_spec($spec) && !empty($prod))
         {
           $product_info = get_products_info($goods_id, $spec);
@@ -84,7 +84,7 @@ if (!empty($_REQUEST['act']) && $_REQUEST['act'] == 'price')
         {
           $product_info = array('product_number' => '', 'product_id' => 0);
         }
-        
+
         //商品存在规格 是货品 检查该货品库存
         if (is_spec($attr_id) && !empty($prod))
         {
@@ -95,13 +95,13 @@ if (!empty($_REQUEST['act']) && $_REQUEST['act'] == 'price')
             {
               $res['err_msg'] = "该商品已经库存不足。您的购货数量修改不能大于 ".$product_info['product_number']."。";
               $res['err_no'] = 2;
-              $number = 0; 
+              $number = 0;
             }
           }
         } */
-      } 
+      }
     }
-    
+
     if ($goods_id == 0)
     {
         $res['err_msg'] = $_LANG['err_change_attr'];
@@ -121,7 +121,7 @@ if (!empty($_REQUEST['act']) && $_REQUEST['act'] == 'price')
         $shop_price  = get_final_price($goods_id, $number, true, $attr_id);
         $res['result'] = price_format($shop_price * $number);
     }
-    
+
     $order = array();
 	$order['shipping_id']  = intval($_REQUEST['shipping']);
 	$order['pay_id']       = intval($_REQUEST['payment']);
@@ -131,24 +131,24 @@ if (!empty($_REQUEST['act']) && $_REQUEST['act'] == 'price')
     $consignee['province'] = $region[1];
     $consignee['city']     = $region[2];
     $consignee['district'] = $region[3];
-    $shipping_info = shipping_area_info($order['shipping_id'], $regions);
-    
+    $shipping_info = shipping_area_info($order['shipping_id'], $region);
+
     //未选择配送方式前不清除购物车
     if (0 != $order['shipping_id'])
     {
-      clear_cart();    
+      clear_cart();
       addto_cart(intval($_REQUEST['id']), intval($_REQUEST['number']), explode(",", $_REQUEST['attr']));
       $flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
-      $cart_goods = cart_goods($flow_type); // 取得商品列表，计算合计    
-      /* 计算订单的费用 */    
+      $cart_goods = cart_goods($flow_type); // 取得商品列表，计算合计
+      /* 计算订单的费用 */
       $total = order_fee($order, $cart_goods, $consignee);
-      $smarty->assign('total', $total);      
+      $smarty->assign('total', $total);
       $res['content'] = $smarty->fetch('library/order_total.lbi');
     } else {
-      
+
       $total = $res['result'];
     }
-    
+
     die($json->encode($res));
 }
 elseif ($_REQUEST['step'] == 'select_district')
@@ -165,26 +165,26 @@ elseif ($_REQUEST['step'] == 'select_district')
     $result['payment_list'] = available_payment_list(intval($_REQUEST['shipping']));
 
     $order = array();
-	
+
     $consignee = array();
     $consignee['country']  = $region[0];
     $consignee['province'] = $region[1];
     $consignee['city']     = $region[2];
     $consignee['district'] = $region[3];
     $shipping_info = shipping_area_info($order['shipping_id'], $regions);
-    
-    clear_cart();    
+
+    clear_cart();
     addto_cart(intval($_REQUEST['goods_id']), intval($_REQUEST['number']), explode(",", $_REQUEST['spec']));
     $flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
-    $cart_goods = cart_goods($flow_type); // 取得商品列表，计算合计    
-    /* 计算订单的费用 */    
+    $cart_goods = cart_goods($flow_type); // 取得商品列表，计算合计
+    /* 计算订单的费用 */
     $total = order_fee($order, $cart_goods, $consignee);
     $smarty->assign('total', $total);
-    
+
     $result['content'] = $smarty->fetch('library/order_total.lbi');
-    
+
     $smarty->assign('total', $total);
-    
+
     echo $json->encode($result);
     exit;
 }
@@ -209,19 +209,19 @@ elseif ($_REQUEST['step'] == 'select_shipping')
     $shipping_info = shipping_area_info($order['shipping_id'], $region);
 
     $result['payment_list'] = available_payment_list($shipping_info['support_cod'], $shipping_info['pay_fee']);
-    clear_cart();    
+    clear_cart();
     addto_cart(intval($_REQUEST['goods_id']), intval($_REQUEST['number']), explode(",", $_REQUEST['spec']));
     $flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
-    $cart_goods = cart_goods($flow_type); // 取得商品列表，计算合计    
-    /* 计算订单的费用 */    
+    $cart_goods = cart_goods($flow_type); // 取得商品列表，计算合计
+    /* 计算订单的费用 */
     $total = order_fee($order, $cart_goods, $consignee);
     $smarty->assign('total', $total);
-    
+
     $result['content'] = $smarty->fetch('library/order_total.lbi');
-    
+
     $smarty->assign('total', $total);
-    
-	
+
+
     echo $json->encode($result);
 
     exit;
@@ -245,20 +245,20 @@ elseif ($_REQUEST['step'] == 'select_payment')
     $consignee['city']     = $region[2];
     $consignee['district'] = $region[3];
     $shipping_info = shipping_area_info($order['shipping_id'], $regions);
-    
-    clear_cart();    
+
+    clear_cart();
     addto_cart(intval($_REQUEST['goods_id']), intval($_REQUEST['number']), explode(",", $_REQUEST['spec']));
     $flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
-    $cart_goods = cart_goods($flow_type); // 取得商品列表，计算合计    
-    /* 计算订单的费用 */    
+    $cart_goods = cart_goods($flow_type); // 取得商品列表，计算合计
+    /* 计算订单的费用 */
     $total = order_fee($order, $cart_goods, $consignee);
     $smarty->assign('total', $total);
-    
+
     $result['content'] = $smarty->fetch('library/order_total.lbi');
-    
+
     $smarty->assign('total', $total);
-    
-	
+
+
     echo $json->encode($result);
 
     exit;
@@ -277,7 +277,7 @@ elseif ($_REQUEST['step'] == 'is_login')
 /*------------------------------------------------------ */
 elseif ($_REQUEST['step'] == 'done')
 {
-	
+
 	/*匿名用户注册*/
 	if ($_SESSION['user_id'] == 0)
 	{
@@ -285,22 +285,22 @@ elseif ($_REQUEST['step'] == 'done')
 
 		$username = empty($_POST['tel'])? '' : make_semiangle(trim($_POST['tel']));
 		$email    = isset($_POST['email']) ? trim($_POST['email']) : '';
-		//$email    = is_email($email) ? $email :  $_CFG['service_email'];		
+		//$email    = is_email($email) ? $email :  $_CFG['service_email'];
 		$email    = is_email($email) ? $email :  $username.'@139.com';
 		while ($username == "" || $user->check_user($username) || admin_registered($username))
 		{
 			$username = '';
-    		for ($i = 0; $i < 7; $i++) 
+    		for ($i = 0; $i < 7; $i++)
     		{
-        		$username .= chr(mt_rand(97, 122));        	
+        		$username .= chr(mt_rand(97, 122));
     		}
 		}
-		
+
         //$username = isset($_POST['username']) ? trim($_POST['username']) : '';
-        
+
         $password = $username;
-        
-        
+
+
         $other['msn']          = '';
         $other['qq']           = '';
     	$other['office_phone'] = '';
@@ -312,17 +312,17 @@ elseif ($_REQUEST['step'] == 'done')
         	$smarty->assign('password', $password);
         }
 
-	}   
+	}
 
     include_once('includes/lib_clips.php');
     include_once('includes/lib_payment.php');
 
     $_SESSION['direct_shopping'] = 1;
-    
+
     /* 取得购物类型 */
     $flow_type = isset($_SESSION['flow_type']) ? intval($_SESSION['flow_type']) : CART_GENERAL_GOODS;
 
-    
+
     /* 检查购物车中是否有商品 */
     $sql = "SELECT COUNT(*) FROM " . $ecs->table('cart') .
         " WHERE session_id = '" . SESS_ID . "' " .
@@ -367,15 +367,15 @@ elseif ($_REQUEST['step'] == 'done')
 
     if ($_SESSION['user_id'] > 0)
     {
-    	include_once(ROOT_PATH . 'includes/lib_transaction.php');    	
-    	
+    	include_once(ROOT_PATH . 'includes/lib_transaction.php');
+
     	/* 如果用户已经登录，则保存收货人信息 */
     	$consignee['user_id'] = $_SESSION['user_id'];
 
     	$sql = "SELECT COUNT(*) FROM " . $GLOBALS['ecs']->table('user_address') .
             " WHERE user_id = '$consignee[user_id]'";
     	$count_address  = $GLOBALS['db']->getOne($sql);
-    	
+
     	$sql = "SELECT COUNT(*) FROM " . $GLOBALS['ecs']->table('user_address') .
             " WHERE user_id  = '$consignee[user_id]'" .
     	    " AND consignee      = '$consignee[consignee]'".
@@ -395,13 +395,13 @@ elseif ($_REQUEST['step'] == 'done')
     	if ($count_address < 5 && $exist_address == 0) {
     		$consignee['address_id'] = 0;
     		save_consignee($consignee, true);
-    	}    	
+    	}
 	$email = $consignee['email'];
     }
 
     /* 保存到session */
     $_SESSION['flow_consignee'] = stripslashes_deep($consignee);
-    
+
     /*
      * 检查用户是否已经登录
      * 如果用户已经登录了则检查是否有默认的收货地址
@@ -413,7 +413,7 @@ elseif ($_REQUEST['step'] == 'done')
         ecs_header("Location: flow.php?step=login\n");
         exit;
     }
-    
+
     $consignee = get_consignee($_SESSION['user_id']);
 
     if (empty($consignee['email'])) {
@@ -842,7 +842,7 @@ elseif ($_REQUEST['step'] == 'done')
     $content = $smarty->fetch('library/quick_buy_mail.lbi');
     send_mail($order['consignee'], $order['email'], '恭喜您！订单成功提交', $content);     */
     install_quick_buy_mail();
-    
+
     if ($password)
     {
 	    $tpl = get_mail_template('quick_buy');
@@ -851,11 +851,11 @@ elseif ($_REQUEST['step'] == 'done')
 	    $smarty->assign('shop_name', $_CFG['shop_name']);
 	    $smarty->assign('send_date', local_date($_CFG['date_format']));
 	    $smarty->assign('sent_date', local_date($_CFG['date_format']));
-	    $content = $smarty->fetch('str:' . $tpl['template_content']);    
+	    $content = $smarty->fetch('str:' . $tpl['template_content']);
 
 	    $sql = "INSERT INTO " . $ecs->table('email_sendlist') .
 		    "(id, email, template_id, email_content, error, pri, last_send) VALUES " .
-		    "(NULL, '$email', 15, '$content', 0, 0,NOW( ))";    
+		    "(NULL, '$email', 15, '$content', 0, 0,NOW( ))";
 	    $result = $GLOBALS['db']->query($sql);
     }
     /* 订单信息 */
@@ -1493,11 +1493,11 @@ function cart_favourable_amount($favourable)
 }
 
 function install_quick_buy_mail() {
-  
+
   $sql = 'SELECT COUNT(*) FROM ' .$GLOBALS['ecs']->table('mail_templates').
           ' WHERE template_code = "quick_buy"';
-  
-  if (0 == $GLOBALS['db']->getOne($sql)) {  
+
+  if (0 == $GLOBALS['db']->getOne($sql)) {
     $sql = "INSERT INTO ".$GLOBALS['ecs']->table('mail_templates')." (`template_id`, `template_code`, `is_html`, `template_subject`, `template_content`, `last_modify`, `last_send`, `type`) VALUES".
 "(15, 'quick_buy', 1, '快速购买', '<p>亲爱的{\$order.consignee}，你好！ <br /><br /><br /><br />我们已经收到您于 {\$order.formated_add_time} 提交的订单，该订单编号为：{\$order.order_sn} 请记住这个编号以便日后的查询。<br /><br /><br /><br />{if \$username}<br /><br />系统自动为您创建的帐号：{\$username}<br /><br />密码：{\$password}<br /><br />{/if}<br /><br />{\$shop_name}<br /><br />{\$sent_date}</p>', 1323156837, 0, 'template');";
     $GLOBALS['db']->query($sql);

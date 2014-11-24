@@ -37,6 +37,7 @@ function quickBuyChangePriceResponse(a) {
 	document.forms.ECS_FORMQUICKBUY.elements.quickBuyNumber.value = a.qty;
 	if (document.getElementById("ECS_GOODS_QUICKBUY_AMOUNT")) {
 		document.getElementById("ECS_GOODS_QUICKBUY_AMOUNT").innerHTML = a.result
+		document.getElementById("ECS_GOODS_AMOUNT").innerHTML = a.result
 	}
 	orderSelectedResponse(a)
 }

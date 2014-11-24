@@ -639,6 +639,7 @@ var now_time = {$now_time};
 <!-- {literal} -->
 onload = function(){
   changePrice();
+  quickBuyChangePrice();
   fixpng();
   try { onload_leftTime(); }
   catch (e) {}
