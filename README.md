@@ -57,3 +57,7 @@ Copyright (c) 2005-2014 上海商派网络科技有限公司. 了解版权信息
 [1]: http://www.ecshop.com "官方网站"
 [2]: http://bbs.ecshop.com "讨论社区"
 [3]: LICENSE.md "license"
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/runphp/ecshop/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
